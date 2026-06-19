@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.0.0",
+    "@types/pg": "^8.20.0"
+  },
+  "dependencies": {
+    "@types/node": "^25.9.3",
+    "commander": "^15.0.0",
+    "pg": "^8.21.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "fleet": "node -r ts-node/register src/bin/cli.ts"
+  }
+}
