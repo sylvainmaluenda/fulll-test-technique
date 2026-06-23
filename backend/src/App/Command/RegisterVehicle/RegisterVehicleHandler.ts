@@ -5,7 +5,7 @@ import { RegisterVehicleCommand } from "./RegisterVehicleCommand";
 export class RegisterVehicleHandler {
   constructor(private readonly fleetRepository: FleetRepository) {}
 
-  async execute(command: RegisterVehicleCommand): Promise<void> {
+  async execute(command: RegisterVehicleCommand): Promise<Vehicle> {
     const fleet = await this.fleetRepository.findById(command.fleetId);
 
     if (!fleet) {
@@ -16,6 +16,8 @@ export class RegisterVehicleHandler {
 
     fleet.registerVehicle(vehicle);
 
-    await this.fleetRepository.save(fleet);
+    await this.fleetRepository.update(fleet);
+
+    return vehicle;
   }
 }

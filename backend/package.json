@@ -6,11 +6,20 @@
   "dependencies": {
     "@types/node": "^25.9.3",
     "commander": "^15.0.0",
+    "dotenv": "^17.4.2",
     "pg": "^8.21.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "fleet": "node -r ts-node/register src/bin/cli.ts"
+    "test": "cucumber-js",
+    "test:postgres": "cucumber-js --profile critical",
+
+    "infra:test": "node -r ts-node/register database/test-db.ts",
+    "infra:init": "node -r ts-node/register database/init-db.ts",
+    "infra:clear": "node -r ts-node/register database/clear-db.ts",
+    "infra:reset": "node -r ts-node/register database/reset-db.ts",
+
+    "fleet": "node -r ts-node/register bin/cli.ts"
   }
 }

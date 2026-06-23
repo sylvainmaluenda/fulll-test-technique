@@ -1,21 +1,24 @@
+const common = {
+  paths: ["tests/features/**/*.feature"],
+  requireModule: ["ts-node/register"],
+  require: ["tests/steps/**/*.steps.ts", "tests/support/worldCustom.ts"],
+  format: ["progress"],
+};
+
 module.exports = {
-  domain: {
-    tags: "not @critical",
-    paths: ["tests/features/**/*.feature"],
-    requireModule: ["ts-node/register"],
-    require: ["tests/steps/domain/**/*.ts", "tests/support/worldMemory.ts"],
-    format: ["progress"],
+  default: {
+    ...common,
+    worldParameters: {
+      infrastructure: "memory",
+    },
   },
 
-  postgres: {
+  critical: {
+    ...common,
     tags: "@critical",
-    paths: ["tests/features/**/*.feature"],
-    requireModule: ["ts-node/register"],
-    require: [
-      "tests/steps/postgres/**/*.ts",
-      "tests/support/worldPostgres.ts",
-      "tests/support/hooksPostgres.ts",
-    ],
-    format: ["progress"],
+    worldParameters: {
+      infrastructure: "postgres",
+    },
+    require: [...common.require, "tests/support/hooksPostgres.ts"],
   },
 };

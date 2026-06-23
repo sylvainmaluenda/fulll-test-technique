@@ -1,6 +1,7 @@
 import { FleetRepository } from "./FleetRepository";
 import { Fleet } from "../Domain/Fleet/Fleet";
 import { Vehicle } from "../Domain/Fleet/Vehicle";
+import { Location } from "../Domain/Fleet/Location";
 import { pool } from "./PostgresClient";
 
 export class PostgresFleetRepository implements FleetRepository {
@@ -20,11 +21,11 @@ export class PostgresFleetRepository implements FleetRepository {
 
     const fleetRow = fleetResult.rows[0];
 
-    const fleet = new Fleet(Number(fleetRow.user_id), Number(fleetRow.id));
+    const fleet = new Fleet(Number(fleetRow.id), Number(fleetRow.user_id));
 
     const vehiclesResult = await pool.query(
       `
-      SELECT plate_number
+      SELECT plate_number, latitude, longitude, altitude
       FROM vehicles
       WHERE fleet_id = $1
       `,
@@ -32,27 +33,39 @@ export class PostgresFleetRepository implements FleetRepository {
     );
 
     for (const row of vehiclesResult.rows) {
-      fleet.registerVehicle(new Vehicle(row.plate_number));
+      const vehicle = new Vehicle(row.plate_number);
+
+      if (row.latitude !== null && row.longitude !== null) {
+        vehicle.park(
+          new Location(
+            Number(row.latitude),
+            Number(row.longitude),
+            row.altitude !== null ? Number(row.altitude) : undefined,
+          ),
+        );
+      }
+
+      fleet.registerVehicle(vehicle);
     }
 
     return fleet;
   }
 
-  async create(fleet: Fleet): Promise<Fleet> {
+  async create(userId: number): Promise<Fleet> {
     const result = await pool.query(
       `
     INSERT INTO fleets(user_id)
     VALUES($1)
     RETURNING id
     `,
-      [fleet.userId],
+      [userId],
     );
 
-    return new Fleet(fleet.userId, Number(result.rows[0].id));
+    return new Fleet(userId, Number(result.rows[0].id));
   }
 
-  async save(fleet: Fleet): Promise<void> {
-    if (!fleet.id) {
+  async update(fleet: Fleet): Promise<void> {
+    if (fleet.id === undefined) {
       throw new Error("Cannot save fleet without id");
     }
 
@@ -79,12 +92,26 @@ export class PostgresFleetRepository implements FleetRepository {
       );
 
       for (const vehicle of fleet.getVehicles()) {
+        const location = vehicle.getLocation();
+
         await client.query(
           `
-        INSERT INTO vehicles(fleet_id, plate_number)
-        VALUES($1, $2)
+        INSERT INTO vehicles(
+          fleet_id,
+          plate_number,
+          latitude,
+          longitude,
+          altitude
+        )
+        VALUES($1, $2, $3, $4, $5)
         `,
-          [fleet.id, vehicle.plateNumber],
+          [
+            fleet.id,
+            vehicle.plateNumber,
+            location?.lat ?? null,
+            location?.lng ?? null,
+            location?.alt ?? null,
+          ],
         );
       }
 

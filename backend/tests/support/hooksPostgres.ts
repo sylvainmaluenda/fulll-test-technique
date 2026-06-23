@@ -1,10 +1,6 @@
 import { Before } from "@cucumber/cucumber";
-import { pool } from "../../src/Infra/PostgresClient";
+import { setupDb } from "../../database/setup-db";
 
 Before({ tags: "@critical" }, async () => {
-  await pool.query(`
-    TRUNCATE TABLE vehicles, fleets
-    RESTART IDENTITY
-    CASCADE
-  `);
+  await setupDb();
 });
