@@ -61,7 +61,7 @@ export class PostgresFleetRepository implements FleetRepository {
       [userId],
     );
 
-    return new Fleet(userId, Number(result.rows[0].id));
+    return new Fleet(Number(result.rows[0].id), userId);
   }
 
   async update(fleet: Fleet): Promise<void> {
