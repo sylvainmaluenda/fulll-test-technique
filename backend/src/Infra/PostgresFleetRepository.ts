@@ -20,9 +20,6 @@ export class PostgresFleetRepository implements FleetRepository {
     }
 
     const fleetRow = fleetResult.rows[0];
-
-    const fleet = new Fleet(Number(fleetRow.id), Number(fleetRow.user_id));
-
     const vehiclesResult = await pool.query(
       `
       SELECT plate_number, latitude, longitude, altitude
@@ -32,23 +29,26 @@ export class PostgresFleetRepository implements FleetRepository {
       [id],
     );
 
+    const vehicles: Vehicle[] = [];
+
     for (const row of vehiclesResult.rows) {
-      const vehicle = new Vehicle(row.plate_number);
+      const location =
+        row.latitude !== null && row.longitude !== null
+          ? new Location(
+              Number(row.latitude),
+              Number(row.longitude),
+              row.altitude !== null ? Number(row.altitude) : undefined,
+            )
+          : undefined;
 
-      if (row.latitude !== null && row.longitude !== null) {
-        vehicle.park(
-          new Location(
-            Number(row.latitude),
-            Number(row.longitude),
-            row.altitude !== null ? Number(row.altitude) : undefined,
-          ),
-        );
-      }
-
-      fleet.registerVehicle(vehicle);
+      vehicles.push(Vehicle.rehydrate(row.plate_number, location));
     }
 
-    return fleet;
+    return Fleet.rehydrate(
+      Number(fleetRow.id),
+      Number(fleetRow.user_id),
+      vehicles,
+    );
   }
 
   async create(userId: number): Promise<Fleet> {

@@ -9,6 +9,11 @@ export class InMemoryFleetRepository implements FleetRepository {
     return this.fleets.get(id);
   }
 
+  async findFleetByUserId(userId: number): Promise<Fleet[]> {
+    const fleets = [...this.fleets.values()];
+    return fleets.filter((fleet) => fleet.userId === userId);
+  }
+
   async create(userId: number): Promise<Fleet> {
     const id = this.nextId++;
     const fleet = new Fleet(id, userId);

@@ -4,6 +4,14 @@ export class Vehicle {
   private location?: Location;
   constructor(public readonly plateNumber: string) {}
 
+  static rehydrate(plateNumber: string, location?: Location): Vehicle {
+    const vehicle = new Vehicle(plateNumber);
+
+    vehicle.location = location;
+
+    return vehicle;
+  }
+
   park(location: Location): void {
     const currentLocation = this.getLocation();
 
